@@ -1,0 +1,13 @@
+python
+java
+react
+node
+flask
+machine learning
+deep learning
+communication
+project management
+sql
+excel
+tailwind
+docker
