@@ -5,6 +5,10 @@ from flask_cors import CORS
 from groq import Groq
 from pypdf import PdfReader  # Library to read PDFs
 import io
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 app = Flask(__name__)
 CORS(app)
