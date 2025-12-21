@@ -17,7 +17,7 @@ import os
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 
-client = Groq(api_key=API_KEY)
+client = Groq(api_key=GROQ_API_KEY)
 
 def extract_text_from_pdf(file_storage):
     """
