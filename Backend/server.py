@@ -1,137 +1,99 @@
-import json
-import os
+"""
+Resume Job Matcher Backend - Final Fix
+"""
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from groq import Groq
-from pypdf import PdfReader  # Library to read PDFs
-import io
-from dotenv import load_dotenv
-
-load_dotenv()
-
+import PyPDF2
+from matcher import ResumeJobMatcher
+from models import db, AnalysisResult
 
 app = Flask(__name__)
 CORS(app)
 
-# ==========================================
-# PASTE YOUR GROQ KEY HERE
-# ==========================================
-import os
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///resumes.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db.init_app(app)
 
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+with app.app_context():
+    db.create_all()
 
+matcher = ResumeJobMatcher()
 
-client = Groq(api_key=GROQ_API_KEY)
-
-def extract_text_from_pdf(file_storage):
-    """
-    Extracts text from a PDF file stream.
-    """
+def extract_text_from_pdf(pdf_file):
     try:
-        # Create a PDF reader object from the file bytes
-        reader = PdfReader(file_storage)
+        pdf_reader = PyPDF2.PdfReader(pdf_file)
         text = ""
-        for page in reader.pages:
-            text += page.extract_text() + "\n"
+        for page in pdf_reader.pages:
+            extract = page.extract_text()
+            if extract:
+                text += extract + "\n"
         return text
-    except Exception as e:
-        print(f"Error reading PDF: {e}")
+    except Exception:
         return ""
 
-def clean_json(text):
-    text = text.strip()
-    if "```" in text:
-        parts = text.split("```")
-        for part in parts:
-            if "{" in part and "}" in part:
-                text = part
-                if text.startswith("json"):
-                    text = text[4:]
-                break
-    return text.strip()
-
 @app.route('/api/analyze', methods=['POST'])
-def analyze():
-    # 1. Handle File Upload (Multipart/Form-Data)
-    job_description = request.form.get('job_description', '')
-    resume_file = request.files.get('resume')
-
-    if not resume_file or not job_description:
-        return jsonify({"error": "Missing resume file or job description"}), 400
-
-    # 2. Extract Text based on file type
-    filename = resume_file.filename.lower()
-    resume_text = ""
-
-    if filename.endswith('.pdf'):
-        print(f"📄 Processing PDF: {filename}")
-        resume_text = extract_text_from_pdf(resume_file)
-    elif filename.endswith('.txt'):
-        print(f"📄 Processing TXT: {filename}")
-        resume_text = resume_file.read().decode('utf-8')
-    else:
-        return jsonify({"error": "Unsupported file type. Use PDF or TXT"}), 400
-
-    if not resume_text.strip():
-        return jsonify({"error": "Could not extract text from this file"}), 400
-
-    # 3. Send to AI (Llama 3.3)
-    model_name = "llama-3.3-70b-versatile" 
+def analyze_resume():
+    print("\n--- DEBUG: REQUEST RECEIVED ---")
     
-    prompt = f"""
-    You are an expert ATS (Applicant Tracking System).
+    # 1. FIND THE FILE (Check all possible keys)
+    uploaded_file = None
+    if request.files:
+        # Take the first file found, regardless of its key name (resume_file, resume, file, etc.)
+        first_key = next(iter(request.files))
+        uploaded_file = request.files[first_key]
+        print(f"Found file under key: '{first_key}'")
     
-    JOB DESCRIPTION:
-    {job_description}
+    if not uploaded_file:
+        print("ERROR: No files attached to request")
+        return jsonify({'error': 'No file uploaded'}), 400
 
-    RESUME CONTENT:
-    {resume_text}
-    
-    TASK:
-    Analyze the resume. Return ONLY valid JSON:
-    {{
-        "candidate_info": {{
-            "name": "Extract Name",
-            "email": "Extract Email",
-            "phone": "Extract Phone",
-            "experience_level": "Junior/Mid/Senior",
-            "detected_job_title": "Current Role"
-        }},
-        "match_analysis": {{
-            "ats_score": <integer 0-100>,
-            "industry_match": "High/Medium/Low",
-            "matched_skills": ["skill1", "skill2"],
-            "missing_skills": ["skill1", "skill2"]
-        }},
-        "quality_check": {{
-            "grammar_score": <integer 0-100>,
-            "formatting_issues": ["issue1"]
-        }},
-        "improvements": ["suggestion1", "suggestion2"]
-    }}
-    """
+    # 2. GET JOB DESC
+    job_text = request.form.get('job_description', '')
+    if not job_text:
+        print("ERROR: No job description text")
+        return jsonify({'error': 'Missing job description'}), 400
 
-    print(f"🔄 Analyzing {filename} with Groq...")
-
+    # 3. PROCESS TEXT
     try:
-        chat_completion = client.chat.completions.create(
-            messages=[
-                {"role": "system", "content": "You are a JSON-only output API."},
-                {"role": "user", "content": prompt}
-            ],
-            model=model_name,
-            temperature=0.1,
-            response_format={"type": "json_object"}
-        )
+        if uploaded_file.filename.endswith('.pdf'):
+            resume_text = extract_text_from_pdf(uploaded_file)
+        else:
+            resume_text = uploaded_file.read().decode('utf-8', errors='ignore')
 
-        response_text = chat_completion.choices[0].message.content
-        cleaned_text = clean_json(response_text)
-        return jsonify(json.loads(cleaned_text))
+        if not resume_text.strip():
+            print("ERROR: Empty text extracted from PDF")
+            return jsonify({'error': 'Could not read text from file. Is it an image scan?'}), 400
+
+        # 4. ANALYZE
+        results = matcher.analyze(resume_text, job_text)
+        
+        # Save History
+        try:
+            new_scan = AnalysisResult(
+                filename=uploaded_file.filename,
+                match_score=results['matchScore'],
+                matched_skills=",".join(results['matchedSkills']),
+                missing_skills=",".join(results['missingSkills'])
+            )
+            db.session.add(new_scan)
+            db.session.commit()
+        except Exception as e:
+            print(f"DB Error (ignored): {e}")
+
+        return jsonify(results), 200
 
     except Exception as e:
-        print(f"❌ Error: {e}")
-        return jsonify({"error": str(e)}), 500
+        print(f"SERVER CRASH: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/history', methods=['GET'])
+def get_history():
+    try:
+        scans = AnalysisResult.query.order_by(AnalysisResult.timestamp.desc()).limit(10).all()
+        return jsonify([scan.to_dict() for scan in scans]), 200
+    except:
+        return jsonify([]), 200
 
 if __name__ == '__main__':
     print("Server running on http://localhost:5000")
-    app.run(port=5000, debug=True)
+    app.run(debug=True, host='0.0.0.0', port=5000)
