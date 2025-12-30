@@ -23,7 +23,8 @@ const ScoreGauge = ({ score, label, color = "default" }) => {
           strokeLinecap="round"
           className={colorClass}
           initial={{ strokeDasharray: circumference, strokeDashoffset: circumference }}
-          animate={{ strokeDashoffset: offset }}
+          whileInView={{ strokeDashoffset: offset }}
+          viewport={{ once: true, margin: "-20px" }}
           transition={{ duration: 1.5, ease: "easeOut", delay: 0.2 }}
         />
       </svg>
@@ -34,7 +35,8 @@ const ScoreGauge = ({ score, label, color = "default" }) => {
         {/* 1. NUMBER: Pushed UP by 5px and Line-Height set to 1 (leading-none) */}
         <motion.div 
           initial={{ opacity: 0, scale: 0.5 }}
-          animate={{ opacity: 1, scale: 1 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.5 }}
           className={`text-3xl font-extrabold leading-none ${colorClass} -translate-y-1`} 
         >

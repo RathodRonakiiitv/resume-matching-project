@@ -5,3 +5,5 @@ PyPDF2==3.0.1
 nltk==3.8.1
 numpy==1.26.2
 flask-sqlalchemy==3.1.1
+python-dotenv==1.0.0
+groq==0.4.2

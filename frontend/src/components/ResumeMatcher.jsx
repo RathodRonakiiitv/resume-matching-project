@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence, useScroll, useSpring } from 'framer-motion';
 import { jsPDF } from "jspdf";
-// Removed unused 'getHistory' import
-import { 
-  Upload, FileText, Briefcase, CheckCircle, XCircle, 
-  Activity, Sparkles, AlertCircle, Download, 
-  Layout, Clock, ChevronRight // Removed 'History' and 'BarChart'
+import {
+  Upload, FileText, Briefcase, CheckCircle, XCircle,
+  Activity, Sparkles, AlertCircle, Download,
+  Layout, Clock, ChevronRight
 } from 'lucide-react';
 import ScoreGauge from './ScoreGauge';
 import TiltCard from './TiltCard';
@@ -44,12 +43,13 @@ const SkillBadge = ({ skill, type, delay }) => {
   return (
     <motion.span
       initial={{ scale: 0, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
+      whileInView={{ scale: 1, opacity: 1 }}
+      viewport={{ once: true }}
       transition={{ type: "spring", stiffness: 300, delay: delay * 0.05 }}
       whileHover={{ scale: 1.1, rotate: Math.random() * 4 - 2 }}
       className={`cursor-hover inline-flex items-center px-4 py-2 rounded-xl text-sm font-semibold shadow-sm cursor-default border transition-colors
-        ${isMatch 
-          ? 'bg-emerald-50 text-emerald-700 border-emerald-100 hover:bg-emerald-100' 
+        ${isMatch
+          ? 'bg-emerald-50 text-emerald-700 border-emerald-100 hover:bg-emerald-100'
           : 'bg-rose-50 text-rose-700 border-rose-100 hover:bg-rose-100'}`}
     >
       {isMatch ? <CheckCircle className="w-4 h-4 mr-2" /> : <XCircle className="w-4 h-4 mr-2" />}
@@ -78,10 +78,11 @@ const HistoryView = () => {
   return (
     <motion.div className="grid gap-4">
       {history.map((item, i) => (
-        <motion.div 
+        <motion.div
           key={item.id}
           initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true }}
           transition={{ delay: i * 0.1 }}
           whileHover={{ scale: 1.02, x: 10 }}
           className="cursor-hover bg-white/80 p-6 rounded-2xl border border-slate-100 shadow-sm flex flex-col md:flex-row md:items-center justify-between"
@@ -97,9 +98,9 @@ const HistoryView = () => {
             </p>
           </div>
           <div className="text-right">
-             <p className={`text-xl font-black ${item.match_score >= 70 ? 'text-emerald-500' : 'text-amber-500'}`}>
-                {Math.round(item.match_score)}%
-             </p>
+            <p className={`text-xl font-black ${item.match_score >= 70 ? 'text-emerald-500' : 'text-amber-500'}`}>
+              {Math.round(item.match_score)}%
+            </p>
           </div>
         </motion.div>
       ))}
@@ -111,10 +112,11 @@ const HistoryView = () => {
 // --- Main Application ---
 export default function ResumeMatcher() {
   const [activeTab, setActiveTab] = useState('analyze');
-  const [candidates, setCandidates] = useState([]); 
+  const [candidates, setCandidates] = useState([]);
   const [jobDesc, setJobDesc] = useState('');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [loadingStage, setLoadingStage] = useState('');
   const [error, setError] = useState('');
 
   // Scroll Progress Bar Logic
@@ -140,14 +142,18 @@ export default function ResumeMatcher() {
 
     try {
       for (const candidate of candidates) {
+        setLoadingStage(`Parsing ${candidate.name}...`);
         const formData = new FormData();
         formData.append('resume_file', candidate.file);
         formData.append('job_description', jobDesc);
 
+        setLoadingStage(`Analyzing skills for ${candidate.name}...`);
         const response = await fetch(`${API_URL}/api/analyze`, { method: 'POST', body: formData });
         const data = await response.json();
-        
+
         if (!response.ok) throw new Error(data.error || 'Server error');
+
+        setLoadingStage(`Calculating match for ${candidate.name}...`);
         newResults.push({ ...data, fileName: candidate.name });
       }
       setResults(newResults);
@@ -155,6 +161,7 @@ export default function ResumeMatcher() {
       setError(err.message);
     } finally {
       setLoading(false);
+      setLoadingStage('');
     }
   };
 
@@ -167,17 +174,17 @@ export default function ResumeMatcher() {
 
   return (
     <div className="min-h-screen relative bg-transparent pb-32">
-      
+
       {/* Scroll Progress Bar */}
       <motion.div className="fixed top-0 left-0 right-0 h-1.5 bg-indigo-600 origin-left z-50" style={{ scaleX }} />
 
       <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8 pt-12">
-        
+
         {/* Navigation Tabs */}
         <div className="flex justify-center mb-12">
           <div className="bg-white/40 backdrop-blur-md p-1.5 rounded-2xl flex space-x-2 border border-white/40 shadow-sm">
             {['analyze', 'history'].map(tab => (
-              <button 
+              <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 className={`cursor-hover px-6 py-2.5 rounded-xl text-sm font-bold transition-all capitalize ${activeTab === tab ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-600 hover:bg-white/50'}`}
@@ -197,10 +204,10 @@ export default function ResumeMatcher() {
               <h1 className="text-6xl md:text-7xl font-black tracking-tighter text-slate-900 mb-6 drop-shadow-sm">
                 <TypingText text="Resume Intelligence" />
               </h1>
-              <motion.p 
-                initial={{ opacity: 0 }} 
-                animate={{ opacity: 1 }} 
-                transition={{ delay: 1 }} 
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 1 }}
                 className="text-xl text-slate-600 max-w-2xl mx-auto"
               >
                 AI-Powered Skill Matching & Structural Analysis
@@ -209,7 +216,7 @@ export default function ResumeMatcher() {
 
             {/* Input Section - Using 3D Tilt Cards */}
             <div className="grid lg:grid-cols-12 gap-8 mb-16">
-              
+
               {/* UPLOAD CARD */}
               <div className="lg:col-span-5 h-full">
                 <TiltCard className="h-full">
@@ -253,15 +260,22 @@ export default function ResumeMatcher() {
                   </motion.div>
                 )}
               </AnimatePresence>
-              
+
               <motion.button
-                whileHover={{ scale: 1.05 }} 
-                whileTap={{ scale: 0.95 }} 
-                onClick={analyzeMatch} 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={analyzeMatch}
                 disabled={loading}
                 className={`cursor-hover px-12 py-4 rounded-2xl font-bold text-white shadow-xl transition-all ${loading ? 'bg-slate-400' : 'bg-slate-900 shadow-indigo-500/30'}`}
               >
-                {loading ? <Activity className="w-6 h-6 animate-spin" /> : <div className="flex items-center"><Sparkles className="w-5 h-5 mr-2" /> Analyze Now</div>}
+                {loading ? (
+                  <div className="flex flex-col items-center">
+                    <Activity className="w-6 h-6 animate-spin mb-2" />
+                    <span className="text-xs font-medium animate-pulse">{loadingStage}</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center"><Sparkles className="w-5 h-5 mr-2" /> Analyze Now</div>
+                )}
               </motion.button>
             </div>
 
@@ -269,18 +283,30 @@ export default function ResumeMatcher() {
             <div className="space-y-12">
               <AnimatePresence>
                 {results.map((result, index) => (
-                  <motion.div 
-                    key={index} 
-                    initial={{ opacity: 0, y: 50 }} 
-                    animate={{ opacity: 1, y: 0 }} 
-                    transition={{ duration: 0.5, delay: index * 0.1 }}
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, y: 50 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-100px" }}
+                    transition={{ duration: 0.6, ease: "easeOut" }}
+                    className="relative"
                   >
-                    <div className="flex items-center justify-between mb-6 px-2">
-                       <h2 className="text-3xl font-bold text-slate-800 flex items-center">
-                         <span className="flex items-center justify-center w-10 h-10 rounded-full bg-indigo-600 text-white text-lg mr-4">{index + 1}</span>
-                         {result.fileName}
-                       </h2>
-                       <button onClick={() => exportReport(result)} className="cursor-hover flex items-center px-4 py-2 bg-white rounded-lg text-slate-600 hover:bg-slate-50 border border-slate-200 shadow-sm"><Download className="w-4 h-4 mr-2" /> PDF</button>
+                    {/* Sticky Header for this result */}
+                    <div className="sticky top-4 z-30 mb-8">
+                      <div className="glass px-6 py-4 rounded-2xl flex items-center justify-between shadow-indigo-500/5">
+                        <div className="flex items-center">
+                          <span className="flex items-center justify-center w-8 h-8 rounded-full bg-indigo-600 text-white text-sm font-bold mr-3">{index + 1}</span>
+                          <h2 className="text-xl font-bold text-slate-800 truncate max-w-[200px] md:max-w-md">{result.fileName}</h2>
+                        </div>
+                        <div className="flex items-center space-x-4">
+                          <div className="hidden md:flex items-center px-3 py-1 bg-indigo-50 text-indigo-700 rounded-lg text-sm font-bold">
+                            {Math.round(result.matchScore)}% Match
+                          </div>
+                          <button onClick={() => exportReport(result)} className="cursor-hover flex items-center px-4 py-2 bg-white rounded-lg text-slate-600 hover:bg-slate-50 border border-slate-200 shadow-sm text-sm font-bold">
+                            <Download className="w-4 h-4 mr-2" /> PDF
+                          </button>
+                        </div>
+                      </div>
                     </div>
 
                     <div className="grid lg:grid-cols-12 gap-6">
@@ -288,8 +314,8 @@ export default function ResumeMatcher() {
                         <TiltCard className="flex flex-col items-center justify-center bg-white/80">
                           <ScoreGauge score={result.matchScore} label="Match Score" />
                           <div className="w-full mt-6 pt-6 border-t border-slate-100 flex justify-between">
-                             <span className="text-slate-500 font-medium flex items-center"><Layout className="w-4 h-4 mr-2" /> Structure</span>
-                             <span className="font-bold text-slate-800">{result.structureScore}%</span>
+                            <span className="text-slate-500 font-medium flex items-center"><Layout className="w-4 h-4 mr-2" /> Structure</span>
+                            <span className="font-bold text-slate-800">{result.structureScore}%</span>
                           </div>
                         </TiltCard>
                       </div>
@@ -305,30 +331,27 @@ export default function ResumeMatcher() {
                               </div>
                             </div>
                             <div>
-                               <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Missing</h4>
-                               <div className="flex flex-wrap gap-2">
+                              <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Missing</h4>
+                              <div className="flex flex-wrap gap-2">
                                 {result.missingSkills.length > 0 ? result.missingSkills.map((s, i) => <SkillBadge key={i} skill={s} type="missing" delay={i} />) : <span className="text-emerald-600 font-bold text-sm">Perfect match!</span>}
                               </div>
                             </div>
                           </div>
                         </TiltCard>
-                        
-                        
+
                         {/* Recommendations */}
-                        {/* CHANGE IS HERE: Removed the dark background classes entirely */}
                         <TiltCard className="bg-white/80 border border-white/60">
-                          {/* Update text color to slate-800 (Dark) instead of White */}
                           <h3 className="font-bold text-slate-800 mb-4 flex items-center">
                             <Sparkles className="w-5 h-5 text-indigo-500 mr-2" /> AI Recommendations
                           </h3>
                           <div className="space-y-3">
                             {result.recommendations.map((rec, i) => (
-                              <motion.div 
-                                key={i} 
-                                initial={{ x: -20, opacity: 0 }} 
-                                animate={{ x: 0, opacity: 1 }} 
-                                transition={{ delay: 0.5 + (i * 0.1) }}
-                                // Update inner items to be light gray
+                              <motion.div
+                                key={i}
+                                initial={{ x: -20, opacity: 0 }}
+                                whileInView={{ x: 0, opacity: 1 }}
+                                viewport={{ once: true }}
+                                transition={{ delay: 0.2 + (i * 0.1) }}
                                 className="flex items-start p-3 rounded-lg bg-slate-50 border border-slate-200"
                               >
                                 <ChevronRight className="w-5 h-5 text-indigo-500 mt-0.5 mr-2 shrink-0" />

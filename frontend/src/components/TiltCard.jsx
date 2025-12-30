@@ -18,7 +18,7 @@ export default function TiltCard({ children, className = "" }) {
     if (!ref.current) return;
 
     const rect = ref.current.getBoundingClientRect();
-    
+
     const width = rect.width;
     const height = rect.height;
 
@@ -48,12 +48,13 @@ export default function TiltCard({ children, className = "" }) {
         transformStyle: "preserve-3d",
       }}
       initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-50px" }}
       transition={{ duration: 0.5 }}
-      className={`relative cursor-hover ${className}`} // 'cursor-hover' triggers our custom cursor
+      className={`relative cursor-hover ${className}`}
     >
-      <div 
-        style={{ transform: "translateZ(20px)" }} // Pushes content forward for depth
+      <div
+        style={{ transform: "translateZ(20px)" }}
         className="bg-white/70 backdrop-blur-xl border border-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-3xl p-8 hover:shadow-2xl hover:shadow-indigo-500/20 transition-shadow h-full"
       >
         {children}
