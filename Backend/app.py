@@ -141,5 +141,18 @@ def get_history():
 def get_skills_list():
     return jsonify({'skills': sorted([skill.title() for skill in TECH_SKILLS])}), 200
 
+@app.route("/", methods=["GET"])
+def home():
+    return {
+        "status": "Resume Intelligence API is running",
+        "endpoints": [
+            "/api/analyze (POST)",
+            "/api/rank (POST)",
+            "/api/history (GET)",
+            "/api/skills (GET)"
+        ]
+    }
+
+
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
