@@ -66,10 +66,13 @@ def analyze_resume():
                 job_role="Software Engineer", # You can extract this from JD later
                 match_score=results['matchScore'],
                 matched_skills=",".join(results['matchedSkills']),
-                missing_skills=",".join(results['missingSkills'])
+                missing_skills=",".join(results['missingSkills']),
+                experience_level=results.get('experienceLevel'),
+                tone=results.get('tone')
             )
             db.session.add(new_scan)
             db.session.commit()
+
         except Exception as db_err:
             print(f"Database Error: {db_err}")
 

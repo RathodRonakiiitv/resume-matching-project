@@ -17,6 +17,8 @@ class AnalysisResult(db.Model):
     # Store lists as comma-separated strings for simplicity in SQLite
     matched_skills = db.Column(db.Text) 
     missing_skills = db.Column(db.Text)
+    experience_level = db.Column(db.String(50))
+    tone = db.Column(db.String(50))
 
     def to_dict(self):
         return {
@@ -25,6 +27,8 @@ class AnalysisResult(db.Model):
             'job_role': self.job_role,
             'match_score': self.match_score,
             'timestamp': self.timestamp.isoformat(),
+            'experience_level': self.experience_level,
+            'tone': self.tone,
             'matched_skills': self.matched_skills.split(',') if self.matched_skills else [],
             'missing_skills': self.missing_skills.split(',') if self.missing_skills else []
         }

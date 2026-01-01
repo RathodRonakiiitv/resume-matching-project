@@ -41,3 +41,105 @@
 .cursor-hover {
   cursor: pointer;
 }
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+.bg-mesh {
+  background-color: #f8fafc;
+  background-image:
+    radial-gradient(at 0% 0%, hsla(220, 100%, 95%, 1) 0, transparent 50%),
+    radial-gradient(at 50% 0%, hsla(240, 100%, 95%, 1) 0, transparent 50%),
+    radial-gradient(at 100% 0%, hsla(260, 100%, 95%, 1) 0, transparent 50%);
+}
+
+.custom-card {
+  position: relative;
+  width: 100%;
+  min-height: 220px;
+  box-sizing: border-box;
+  background-color: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 12px;
+  padding: 24px;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  transition: all cubic-bezier(0.4, 0, 0.2, 1) 0.3s;
+  overflow: hidden;
+}
+
+.custom-card:hover {
+  box-shadow: rgba(182, 113, 214, 0.15) 0px 10px 25px;
+  border: 1px solid #b671d6;
+  transform: translateY(-2px);
+}
+
+.custom-card-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1e293b;
+  cursor: default;
+  display: flex;
+  align-items: center;
+}
+
+.custom-card-des {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: #475569;
+  cursor: default;
+  line-height: 1.6;
+}
+
+.custom-card-button {
+  position: absolute;
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: #b671d6;
+  right: 24px;
+  bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  opacity: 0;
+  transition: all ease-in-out 0.3s;
+  animation: cardtextanimate 0.8s alternate infinite;
+  cursor: pointer;
+  background: rgba(182, 113, 214, 0.05);
+  padding: 4px 12px;
+  border-radius: 99px;
+}
+
+.custom-card:hover>.custom-card-button {
+  opacity: 1;
+}
+
+@keyframes cardtextanimate {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-4px);
+  }
+}
