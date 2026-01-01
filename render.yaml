@@ -6,8 +6,10 @@ services:
     region: oregon
     plan: free
     buildCommand: "pip install -r Backend/requirements.txt"
-    startCommand: "gunicorn --chdir Backend app:app"
+    startCommand: "gunicorn Backend.app:app"
     envVars:
+      - key: PYTHONPATH
+        value: "."
       - key: PYTHON_VERSION
         value: 3.11.0
       - key: FLASK_DEBUG

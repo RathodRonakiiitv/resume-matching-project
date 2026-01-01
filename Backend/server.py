@@ -11,6 +11,10 @@ from flask_cors import CORS
 import PyPDF2
 import os
 import json
+import sys
+
+# --- RENDER/PRODUCTION PATH FIX ---
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from matcher import ResumeJobMatcher
 from skills_data import TECH_SKILLS

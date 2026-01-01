@@ -6,10 +6,17 @@ Flask server with ML/NLP endpoints + Database History
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import PyPDF2
+import os
+import sys
+
+# --- RENDER/PRODUCTION PATH FIX ---
+# This ensures that when running from the root directory, 
+# 'Backend' is added to the python path so local imports work.
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 from matcher import ResumeJobMatcher
 from skills_data import TECH_SKILLS
 from models import db, AnalysisResult
-import os
 
 app = Flask(__name__)
 CORS(app)

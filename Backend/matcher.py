@@ -9,17 +9,23 @@ import nltk
 from nltk.corpus import stopwords
 import re
 from collections import Counter
+import sys
+import os
+
+# --- RENDER/PRODUCTION PATH FIX ---
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 from skills_data import TECH_SKILLS, SKILL_CATEGORIES
 
-# Ensure NLTK data exists
-try:
-    nltk.data.find('tokenizers/punkt')
-except LookupError:
-    nltk.download('punkt')
-try:
-    nltk.data.find('corpora/stopwords')
-except LookupError:
-    nltk.download('stopwords')
+# Ensure NLTK data exists with extra robustness for Render
+def setup_nltk():
+    for resource in ['punkt', 'stopwords', 'punkt_tab']:
+        try:
+            nltk.data.find(f'tokenizers/{resource}' if 'punkt' in resource else f'corpora/{resource}')
+        except LookupError:
+            nltk.download(resource)
+
+setup_nltk()
 
 
 class ResumeJobMatcher:
