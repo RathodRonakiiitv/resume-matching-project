@@ -1,0 +1,26 @@
+services:
+  # Backend Service
+  - type: web
+    name: resume-intelligence-api
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: "pip install -r Backend/requirements.txt"
+    startCommand: "gunicorn --chdir Backend app:app"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: FLASK_DEBUG
+        value: "false"
+
+  # Frontend Service
+  - type: web
+    name: resume-intelligence-ui
+    env: static
+    region: oregon
+    plan: free
+    buildCommand: "cd frontend && npm install && npm run build"
+    staticPublishPath: frontend/build
+    envVars:
+      - key: REACT_APP_API_URL
+        value: "https://resume-intelligence-api.onrender.com" # Update this after first deploy

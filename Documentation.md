@@ -26,20 +26,26 @@ Resume Intelligence is a sophisticated recruiter-grade platform that goes beyond
 
 ## Deployment Guide
 
-### Backend (Render / Railway)
+### Option 1: Render Blueprints (Recommended)
+The easiest way to deploy is using the provided `render.yaml` file:
+1. Go to **Render Dashboard** -> **Blueprints**.
+2. Connect your GitHub repository.
+3. Render will automatically detect the services and prompt you to deploy.
+
+### Option 2: Manual Backend (Render / Railway)
 1. Select "Web Service" and connect your repository.
-2. Set Build Command: `pip install -r Backend/requirements.txt`.
-3. Set Start Command: `gunicorn Backend.app:app` (or use the `Procfile`).
-4. Add Environment Variables:
+2. **IMPORTANT**: Set **Root Directory** to `Backend`.
+3. Build Command: `pip install -r requirements.txt`.
+4. Start Command: `gunicorn app:app`.
+5. Add Environment Variables:
    - `PYTHON_VERSION`: `3.11.0`
 
-### Frontend (Vercel / Netlify / Render)
-1. Select "Static Site" and connect your repository.
-2. Root Directory: `frontend`.
+### Option 3: Manual Frontend (Vercel / Netlify)
+1. Connect your repository to Vercel/Netlify.
+2. Set **Root Directory** to `frontend`.
 3. Build Command: `npm run build`.
 4. Output Directory: `build`.
-5. Add Environment Variables:
-   - `REACT_APP_API_URL`: Your deployed backend URL (e.g., `https://api.yourdomain.com`).
+5. Add Environment Variables: `REACT_APP_API_URL` pointing to your Backend.
 
 ### Docker Deployment
 Build and run locally with:
