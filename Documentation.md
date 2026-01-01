@@ -23,3 +23,27 @@ Resume Intelligence is a sophisticated recruiter-grade platform that goes beyond
 2.  **Interview Preparation**: Generates dynamic questions based on the candidate's strengths and missing skills.
 3.  **Actionable Insights**: Provides specific tips on how to improve the resume, such as adding metrics or strong verbs.
 4.  **Recruiter-Grade PDF**: Generates professional multi-section reports for easy sharing within HR teams.
+
+## Deployment Guide
+
+### Backend (Render / Railway)
+1. Select "Web Service" and connect your repository.
+2. Set Build Command: `pip install -r Backend/requirements.txt`.
+3. Set Start Command: `gunicorn Backend.app:app` (or use the `Procfile`).
+4. Add Environment Variables:
+   - `PYTHON_VERSION`: `3.11.0`
+
+### Frontend (Vercel / Netlify / Render)
+1. Select "Static Site" and connect your repository.
+2. Root Directory: `frontend`.
+3. Build Command: `npm run build`.
+4. Output Directory: `build`.
+5. Add Environment Variables:
+   - `REACT_APP_API_URL`: Your deployed backend URL (e.g., `https://api.yourdomain.com`).
+
+### Docker Deployment
+Build and run locally with:
+```bash
+docker build --build-arg REACT_APP_API_URL=http://localhost:5000 -t resume-matcher .
+docker run -p 5000:5000 resume-matcher
+```
