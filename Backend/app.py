@@ -8,6 +8,9 @@ from flask_cors import CORS
 import PyPDF2
 import os
 import sys
+import time
+
+_start_time = time.time()
 
 # --- RENDER/PRODUCTION PATH FIX ---
 # This ensures that when running from the root directory, 
@@ -141,15 +144,25 @@ def get_history():
 def get_skills_list():
     return jsonify({'skills': sorted([skill.title() for skill in TECH_SKILLS])}), 200
 
+@app.route('/api/health', methods=['GET'])
+def health_check():
+    """Keep-alive endpoint for pinging services (UptimeRobot, cron-job.org)"""
+    return jsonify({
+        'status': 'healthy',
+        'uptime_seconds': round(time.time() - _start_time, 1),
+        'version': '2.0'
+    }), 200
+
 @app.route("/", methods=["GET"])
 def home():
     return {
-        "status": "Resume Intelligence API is running",
+        "status": "Resume Intelligence API v2.0 is running",
         "endpoints": [
             "/api/analyze (POST)",
             "/api/rank (POST)",
             "/api/history (GET)",
-            "/api/skills (GET)"
+            "/api/skills (GET)",
+            "/api/health (GET)"
         ]
     }
 

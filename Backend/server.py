@@ -12,6 +12,9 @@ import PyPDF2
 import os
 import json
 import sys
+import time
+
+_start_time = time.time()
 
 # --- RENDER/PRODUCTION PATH FIX ---
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -195,6 +198,16 @@ def get_history():
 def get_skills_list():
     return jsonify({
         'skills': sorted([skill.title() for skill in TECH_SKILLS])
+    }), 200
+
+
+@app.route('/api/health', methods=['GET'])
+def health_check():
+    """Keep-alive endpoint for pinging services"""
+    return jsonify({
+        'status': 'healthy',
+        'uptime_seconds': round(time.time() - _start_time, 1),
+        'version': '2.0'
     }), 200
 
 

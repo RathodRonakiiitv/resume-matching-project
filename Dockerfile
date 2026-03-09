@@ -24,6 +24,9 @@ COPY Backend/requirements.txt ./Backend/
 RUN pip install --no-cache-dir -r Backend/requirements.txt
 RUN pip install gunicorn
 
+# Pre-download NLTK data at build time (not runtime)
+RUN python -c "import nltk; nltk.download('punkt', quiet=True); nltk.download('stopwords', quiet=True); nltk.download('punkt_tab', quiet=True)"
+
 COPY Backend/ ./Backend/
 
 # Copy frontend build from Stage 1
@@ -36,6 +39,6 @@ ENV PYTHONPATH=/app/Backend
 # Expose port
 EXPOSE 5000
 
-# Run the app
+# Run the app with optimized gunicorn settings
 WORKDIR /app/Backend
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "app:app"]
+CMD ["gunicorn", "--preload", "--workers", "2", "--threads", "2", "--timeout", "120", "--bind", "0.0.0.0:5000", "app:app"]

@@ -5,8 +5,8 @@ services:
     env: python
     region: oregon
     plan: free
-    buildCommand: "pip install -r Backend/requirements.txt"
-    startCommand: "gunicorn Backend.app:app"
+    buildCommand: "pip install -r Backend/requirements.txt && python -c \"import nltk; nltk.download('punkt', quiet=True); nltk.download('stopwords', quiet=True); nltk.download('punkt_tab', quiet=True)\""
+    startCommand: "gunicorn --preload --workers 2 --threads 2 --timeout 120 Backend.app:app"
     envVars:
       - key: PYTHONPATH
         value: "."
@@ -14,6 +14,8 @@ services:
         value: 3.11.0
       - key: FLASK_DEBUG
         value: "false"
+      - key: NLTK_DATA
+        value: "/opt/render/project/nltk_data"
 
   # Frontend Service
   - type: web
@@ -25,4 +27,4 @@ services:
     staticPublishPath: frontend/build
     envVars:
       - key: REACT_APP_API_URL
-        value: "https://resume-intelligence-api.onrender.com" # Update this after first deploy
+        value: "https://resume-intelligence-api.onrender.com"
