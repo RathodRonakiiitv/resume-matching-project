@@ -9,8 +9,35 @@ import PyPDF2
 import os
 import sys
 import time
+import threading
+import urllib.request
 
 _start_time = time.time()
+
+# ── Self-Ping Keep-Alive (every 12.5 minutes) ──────────────────────
+SELF_PING_INTERVAL = 750  # 12.5 minutes in seconds
+
+def _keep_alive():
+    """Background thread that pings /api/health to prevent Render cold-starts."""
+    service_url = os.environ.get(
+        "RENDER_EXTERNAL_URL",
+        "https://resume-intelligence-api.onrender.com"
+    )
+    health_url = f"{service_url}/api/health"
+    while True:
+        time.sleep(SELF_PING_INTERVAL)
+        try:
+            req = urllib.request.Request(health_url, method="GET")
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                print(f"[keep-alive] pinged {health_url} → {resp.status}")
+        except Exception as e:
+            print(f"[keep-alive] ping failed: {e}")
+
+# Start the keep-alive thread only on Render (RENDER env var is auto-set)
+if os.environ.get("RENDER"):
+    _ping_thread = threading.Thread(target=_keep_alive, daemon=True)
+    _ping_thread.start()
+    print(f"[keep-alive] started — pinging every {SELF_PING_INTERVAL}s (12.5 min)")
 
 # --- RENDER/PRODUCTION PATH FIX ---
 # This ensures that when running from the root directory, 
