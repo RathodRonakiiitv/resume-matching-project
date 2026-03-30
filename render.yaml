@@ -1,7 +1,7 @@
 services:
   # Backend Service
   - type: web
-    name: resume-intelligence-api
+    name: resume-matching-project
     env: python
     region: oregon
     plan: free
@@ -19,7 +19,7 @@ services:
 
   # Frontend Service
   - type: web
-    name: resume-intelligence-ui
+    name: resume-matching-project-ui
     env: static
     region: oregon
     plan: free
@@ -27,4 +27,4 @@ services:
     staticPublishPath: frontend/build
     envVars:
       - key: REACT_APP_API_URL
-        value: "https://resume-intelligence-api.onrender.com"
+        value: "https://resume-matching-project.onrender.com"
