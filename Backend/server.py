@@ -42,6 +42,7 @@ with app.app_context():
 matcher = ResumeJobMatcher()
 
 groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+groq_model = os.getenv("GROQ_MODEL", "llama3-8b-8192")
 
 
 # -------------------- HELPERS --------------------
@@ -90,7 +91,7 @@ JOB DESCRIPTION:
 """
 
     response = groq_client.chat.completions.create(
-        model="llama3-8b-8192",
+        model=groq_model,
         temperature=0.4,
         messages=[{"role": "user", "content": prompt}]
     )
