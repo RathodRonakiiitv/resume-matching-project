@@ -46,7 +46,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from matcher import ResumeJobMatcher
 from skills_data import TECH_SKILLS
-from models import db, AnalysisResult
+from models import db, AnalysisResult, migrate_schema
 
 app = Flask(__name__)
 CORS(app)
@@ -59,6 +59,7 @@ db.init_app(app)
 # Create DB tables
 with app.app_context():
     db.create_all()
+    migrate_schema()
 
 # Initialize matcher
 matcher = ResumeJobMatcher()
